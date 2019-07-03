@@ -160,7 +160,7 @@ class FHE(settings: Settings) {
   def IndexGen(list:Array[ModularMatrix],id:Int,id2:Int=(-1)):Unit={
     val process = Runtime.getRuntime.exec(settings.FHEIndexgen+" "+
       list(0).getColnum+" "+
-      settings.IndexPath(method,id)+{if(id2==(-1))""else "_"+id2})
+      settings.IndexPath(method,id)+{if(id2==(-1))""else "_"+id2+"_"})
     val stream=process.getOutputStream
     stream.write(param)
     stream.write(pubKey)

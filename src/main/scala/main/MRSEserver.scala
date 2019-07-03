@@ -14,6 +14,7 @@ abstract class  MRSEserver(settings: Settings) {
 
   protected def IndexFiles():Array[File]={
     val dir=new File(settings.datadir)
+    println("searching for: "+MethodName()+settings.Index())
     dir.listFiles().filter(u=>u.getName.contains(MethodName()+settings.Index()))
   }
 

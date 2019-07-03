@@ -329,24 +329,21 @@ object Util {
         t1 = System.nanoTime()
         similaritySearchTime += (t1 - t0) / 1000000
         simresSize += res.Size()
-
-        clientThreads(i)=new Thread(){
+        clientThreads(j)=new Thread(){
           override def run(): Unit = {
             t0 = System.nanoTime()
-            mrse_user.Decrypt(res)
+            mrse_user.Decrypt(res,trapHash)
             t1 = System.nanoTime()
             simresDecTime += (t1 - t0) / 1000000
           }
         }
-        clientThreads(i).start()
+        clientThreads(j).start()
       }
       clientThreads.foreach(u=>u.join())
       val r1=System.nanoTime()
       respTime += (r1 - r0) / 1000000
-
       val dec_res =mrse_user.resultMap.get(trapHash)
       //      val res2=mrse_user.PIR(dec_res.map(u=>u._1))
-
       var localSucc=0
       plainRes.foreach(u=>{
         if(dec_res.filter(v=>v._1==u._1).length>0) {
@@ -370,6 +367,7 @@ object Util {
     trapdoorSize/=testcount2
     simresSize/=testcount2
     totalPassingThreshold/=testcount2
+    respTime/=testcount2
 
     println("Method: "+mrse.MethodName())
     println("docnum: "+settings.docnum)
@@ -395,7 +393,7 @@ object Util {
     println()
     println("RESPONSE TIME(MS): "+respTime)
     println("BANDWIDTH USAGE(KB): "+(trapdoorSize+simresSize))
-    println("PLAIN INDEX SIZE(KB): "+(plainData.map(u=>u.toArray.filter(u=>u>0.001).length*12).reduce((a,b)=>a+b+1)))
+    println("PLAIN INDEX SIZE(KB): "+(plainData.map(u=>u.toArray.filter(u=>u>0.001).length*12).reduce((a,b)=>a+b+1)/1024))
     println()
     println()
 

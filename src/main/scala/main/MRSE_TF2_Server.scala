@@ -10,7 +10,7 @@ class MRSE_TF2_Server(settings: Settings) extends MRSEserver(settings) {
 
   var sknnInstance=new SecureKNN(settings,0,settings.variance)
 
-  override def MethodName(): String = "MRSE_TF2"
+  override def MethodName(): String = "MRSE_TF2_"+settings.variance
 
 
   protected var index:Array[ArrayRealVector]=null

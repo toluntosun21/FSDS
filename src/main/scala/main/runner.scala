@@ -44,6 +44,12 @@ object runner {
       val server=new MRSE_FHE_SkNN_P_Server(settings)
       val client=new MRSE_FHE_SkNN_P_User(settings)
       Util.Tester(server,client,settings,t1,t2)
+    }else if(method==4){
+      settings.variance=args(5).toDouble
+      settings.chunkNum=args(6).toInt
+      val server=new MRSE_TF2_P_Server(settings)
+      val client=new MRSE_TF2_User(settings)
+      Util.Tester(server,client,settings,t1,t2)
     }
   }
 }

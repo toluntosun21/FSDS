@@ -45,7 +45,6 @@ class MRSE_FHE_SkNN_Server(settings: Settings) extends MRSEserver(settings) {
     new MRSE_FHE_SkNN_Result(resBuffer.toArray)
   }
 
-  var trapdoorEncodedParts:IndexedSeq[Array[Byte]]=null
 
   val trapdoorMap=new util.HashMap[Int,IndexedSeq[Array[Byte]]]
   /*
@@ -53,33 +52,32 @@ class MRSE_FHE_SkNN_Server(settings: Settings) extends MRSEserver(settings) {
    */
   override def SimilaritySearch(trapdoor: Trapdoor, index_part: Int,searchID:Int): Result = {
     val num=settings.dic*2
-    val trapdoorCast=trapdoor.get().asInstanceOf[ModularMatrix]
-    val trapdoorInt=(0 until trapdoorCast.getColnum).map(u=>trapdoorCast.get(0,u).longValue().toInt).toArray
     val ChunkSize=num/settings.chunkNum
 
     /*
     encode if new query exists,
      */
-    if(trapdoorMap.containsKey(searchID)==false) {
-
+    val trapdoorEncodedParts = if(trapdoorMap.containsKey(searchID)==false) {
+      val trapdoorCast=trapdoor.get().asInstanceOf[ModularMatrix]
+      val trapdoorInt=(0 until trapdoorCast.getColnum).map(u=>trapdoorCast.get(0,u).longValue().toInt).toArray
       val trapdoorParts = (0 until settings.chunkNum).map(u => {
         trapdoorInt.slice(u * ChunkSize, (u + 1) * ChunkSize)
       })
-      trapdoorEncodedParts = trapdoorParts.map(u => {
+      val temp=trapdoorParts.map(u => {
         fheInstance.EncodeTrapdoor(ChunkSize, u)
-
       })
-      trapdoorMap.put(searchID,trapdoorEncodedParts)
-    }else trapdoorEncodedParts=trapdoorMap.get(searchID)
+      trapdoorMap.put(searchID,temp)
+      temp
+    }else trapdoorMap.get(searchID)
 
+    val t0=System.nanoTime()
       val res=(0 until settings.chunkNum).map(u=>{
         fheInstance.CalcSimPlain(ChunkSize, bytesIndex(index_part)(u), trapdoorEncodedParts(u))
       }).reduce((a,b)=>fheInstance.Add(a,b))
-
+    val t1=System.nanoTime()
+    println("real calc: "+(t1-t0)/1000000)
     new MRSE_FHE_SkNN_Result(Array((index_part,res)))
-
-
-  }
+ }
 
   override def StartServer(): Unit = {
     val indexData=IndexFiles()
@@ -88,9 +86,9 @@ class MRSE_FHE_SkNN_Server(settings: Settings) extends MRSEserver(settings) {
     bytesIndex=new Array[Array[Array[Byte]]](indexParts)
 
     for(i<-0 until indexParts) {
-      bytesIndex(i)=new Array[Array[Byte]](indexParts)
+      bytesIndex(i)=new Array[Array[Byte]](settings.chunkNum)
       for (j <- 0 until settings.chunkNum) {
-        val currFile=indexData.filter(u=>u.getName.contains(i+"_"+j))(0)
+        val currFile=indexData.filter(u=>u.getName.contains(i+"_"+j+"_"))(0)
         println("curr file: "+currFile.getName)
         val inputStream = new FileInputStream(currFile)
         bytesIndex(i)(j) = Util.CollectAllInput(inputStream)

@@ -9,7 +9,7 @@ class MRSE_TF2_User(settings: Settings) extends MRSEuser(settings) {
 
   var sknnInstance=new SecureKNN(settings,0,settings.variance)
 
-  override def MethodName(): String = "MRSE_TF2"
+  override def MethodName(): String = "MRSE_TF2_"+settings.variance
 
   override def TrapGenKeySize(): Int = {
     var total=0

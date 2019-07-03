@@ -96,6 +96,7 @@ class MRSE_FHE_SkNN_User(settings: Settings) extends MRSEuser(settings) {
       val decresID=decres.map(u=>(u._1+settings.SlotCount*fh_sknn_res(i)._1,u._2))
       if(resultMap.containsKey(searchID)==false){
         res=Util.Insert(decresID,settings.K)
+        resultMap.put(searchID,res)
       }
       else{
         res=Util.Insert(resultMap.get(searchID),decresID,settings.K)
