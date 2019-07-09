@@ -1,6 +1,7 @@
 package main
 
 import java.io._
+import java.util.Random
 
 import org.apache.commons.math3.linear.RealVector
 
@@ -102,8 +103,12 @@ class FHE(settings: Settings) {
     Util.CollectAllInput(process.getInputStream)
   }
 
-  def EncodeTrapdoor(num:Int, trapdoor:Array[Int]):Array[Byte]={
-/*    val process = Runtime.getRuntime.exec(settings.FHEEncodeTrapdoor+ " "+num)
+
+
+
+
+  def CalcSimPlain(index:Array[Byte], trapdoor:Array[Int]):Array[Byte]={
+    val process = Runtime.getRuntime.exec(settings.FHECalcSimPlain+ " "+trapdoor.length)
     new Thread("stderr reader for ") {
       override def run() {
         for(line <- Source.fromInputStream(process.getErrorStream).getLines)
@@ -113,36 +118,17 @@ class FHE(settings: Settings) {
 
     val stream=process.getOutputStream
     stream.write(param)
-    val out = new PrintWriter(stream)
-
-    trapdoor.foreach(u=>out.println(u))
-    out.close()
-    Util.CollectAllInput(process.getInputStream)*/
-    FHE.EncodeTrapdoor(settings.FHEEncodeTrapdoor,param,num, trapdoor)
-  }
-
-
-  def CalcSimPlain(num:Int, index:Array[Byte], trapdoor:Array[Byte]):Array[Byte]={
- /*   val process = Runtime.getRuntime.exec(settings.FHECalcSimPlain+ " "+num)
-    new Thread("stderr reader for ") {
-      override def run() {
-        for(line <- Source.fromInputStream(process.getErrorStream).getLines)
-          System.err.println(line)
-      }
-    }.start()
-
-    val stream=process.getOutputStream
-    stream.write(param)
-    stream.write(galoisKeys)
-    stream.write(trapdoor)
+    //    stream.write(trapdoor)
+    trapdoor.foreach(u=>stream.write(Util.ToIntBytes(u)))
     stream.write(index)
-    Util.CollectAllInput(process.getInputStream)*/
-    FHE.CalcSimPlain(settings.FHECalcSimPlain,param,num, index, trapdoor)
+    stream.close()
+    Util.CollectAllInput(process.getInputStream)
   }
+
 
   def Add(ct1:Array[Byte], ct2:Array[Byte]):Array[Byte]={
-    FHE.Add(settings.FHEAdder,param,ct1,ct2)
-/*    val process = Runtime.getRuntime.exec(settings.FHEAdder)
+    val exe=settings.FHEAdder
+    val process = Runtime.getRuntime.exec(exe)
     new Thread("stderr reader for ") {
       override def run() {
         for(line <- Source.fromInputStream(process.getErrorStream).getLines)
@@ -154,7 +140,30 @@ class FHE(settings: Settings) {
     stream.write(param)
     stream.write(ct1)
     stream.write(ct2)
-    Util.CollectAllInput(process.getInputStream)*/
+    Util.CollectAllInput(process.getInputStream)
+
+  }
+
+  def BatchAdd(cts:Array[Array[Byte]]): Array[Byte] ={
+    val exe=settings.FHEBatchAdder
+    if(cts.length==1)return cts(0)
+
+    val process = Runtime.getRuntime.exec(exe+ " "+cts.length)
+    new Thread("stderr reader for ") {
+      override def run() {
+        for(line <- Source.fromInputStream(process.getErrorStream).getLines)
+          System.err.println(line)
+      }
+    }.start()
+    val stream=process.getOutputStream
+    stream.write(param)
+    /*
+    writing all partial results causes an error, TODO: fix it
+     */
+    cts.take(2).foreach(u=>stream.write(u))
+    stream.close()
+    Util.CollectAllInput(process.getInputStream)
+
   }
 
   def IndexGen(list:Array[ModularMatrix],id:Int,id2:Int=(-1)):Unit={
@@ -238,61 +247,6 @@ class FHE(settings: Settings) {
     (Source.fromInputStream(process.getInputStream)).getLines().map(u=>{
       (u.split(":")(0).toInt,u.split(":")(1).toDouble)
     }).toArray
-  }
-
-}
-
-
-object FHE{
-
-  def EncodeTrapdoor(exe:String,param:Array[Byte],num:Int, trapdoor:Array[Int]):Array[Byte]={
-    val process = Runtime.getRuntime.exec(exe+ " "+num)
-    new Thread("stderr reader for ") {
-      override def run() {
-        for(line <- Source.fromInputStream(process.getErrorStream).getLines)
-          System.err.println(line)
-      }
-    }.start()
-
-    val stream=process.getOutputStream
-    stream.write(param)
-    val out = new PrintWriter(stream)
-
-    trapdoor.foreach(u=>out.println(u))
-    out.close()
-    Util.CollectAllInput(process.getInputStream)
-  }
-
-  def CalcSimPlain(exe:String,param:Array[Byte],num:Int, index:Array[Byte], trapdoor:Array[Byte]):Array[Byte]={
-    val process = Runtime.getRuntime.exec(exe+ " "+num)
-    new Thread("stderr reader for ") {
-      override def run() {
-        for(line <- Source.fromInputStream(process.getErrorStream).getLines)
-          System.err.println(line)
-      }
-    }.start()
-
-    val stream=process.getOutputStream
-    stream.write(param)
-    stream.write(trapdoor)
-    stream.write(index)
-    Util.CollectAllInput(process.getInputStream)
-  }
-
-  def Add(exe:String,param:Array[Byte],ct1:Array[Byte], ct2:Array[Byte]):Array[Byte]={
-    val process = Runtime.getRuntime.exec(exe)
-    new Thread("stderr reader for ") {
-      override def run() {
-        for(line <- Source.fromInputStream(process.getErrorStream).getLines)
-          System.err.println(line)
-      }
-    }.start()
-
-    val stream=process.getOutputStream
-    stream.write(param)
-    stream.write(ct1)
-    stream.write(ct2)
-    Util.CollectAllInput(process.getInputStream)
   }
 
 }

@@ -1,8 +1,11 @@
 package main
 
+import java.io.{InputStream, OutputStream}
 import java.util
 
 import org.apache.commons.math3.linear.{ArrayRealVector, RealVector}
+
+import scala.collection.mutable.ArrayBuffer
 
 abstract class MRSEuser(settings: Settings) {
 
@@ -74,6 +77,12 @@ writes to file
 
   def DecodeResult(s:Array[Byte]):Result
 
+
+  def LoadResult(str:InputStream):Result={
+    val temp=Util.CollectInput(str)
+    DecodeResult(temp)
+  }
+
 }
 
 
@@ -85,6 +94,16 @@ trait Trapdoor extends Serializable{
 
   def Encode():Array[Byte]
 
+  def Save(str:OutputStream):Unit={
+    val encoded=Encode()
+    val buffer=java.nio.ByteBuffer.allocate(4)
+    buffer.putInt(encoded.length)
+
+    str.write(buffer.array())
+    str.write(encoded)
+    str.flush()
+  }
+
 }
 
 
@@ -94,4 +113,14 @@ trait Result extends Serializable{
   def Size():Int=Encode().length/1024
 
   def Encode():Array[Byte]
+
+  def Save(str:OutputStream):Unit={
+    val encoded=Encode()
+    val buffer=java.nio.ByteBuffer.allocate(4)
+    buffer.putInt(encoded.length)
+    str.write(buffer.array())
+    str.write(encoded)
+    str.flush()
+  }
+
 }

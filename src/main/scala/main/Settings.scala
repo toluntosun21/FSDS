@@ -12,7 +12,7 @@ class Settings extends Serializable {
   }
   var threshold=0.4
   var plainMod=12289//40961;65537
-  var Scale=100
+  var Scale=200
   var SlotCount=2048
   var dic=3430
   var docnum=2048
@@ -26,8 +26,9 @@ class Settings extends Serializable {
   var variance=0.01
   var TestCount=10
   var server="localhost"
-  var port="8080"
+  var port=8080
   var chunkNum=1
+  var IP="10.36.97.5"
 
   def PlainData():String=if(datadir!="")datadir+"/tf_idf_data_"+setname else "tf_idf_data_"+setname
   def PlainQuerySet():String=if(datadir!="")datadir+"/query_tf_idf_data_"+setname else "query_tf_idf_data_"+setname
@@ -45,13 +46,13 @@ class Settings extends Serializable {
 
   def FHEDecryptor=exedir+"/FHEDecryptor"
   def FHEKeygen=exedir+"/FHEKeyGen"
+  def FHEBatchAdder=exedir+"/FHEAdder"
   def FHEAdder=exedir+"/FHEAdder"
   def FHEIndexgen=exedir+"/FHEIndexGen"
   def FHECKKSTrapgen=exedir+"/FHETrapdoorGen"
   def FHEMaskgen=exedir+"/FHEMaskGen"
   def FHECalcSim=exedir+"/FHECalcSim"
   def FHECalcSimPlain=exedir+"/FHECalcSimPlain"
-  def FHEEncodeTrapdoor=exedir+"/FHEEncodeTrapdoor"
 
 
 

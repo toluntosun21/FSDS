@@ -23,61 +23,32 @@ class MRSE_FHE_SkNN_Server(settings: Settings) extends MRSEserver(settings) {
   override def SimilaritySearch(trapdoor: Trapdoor): Result = {
 
     val num=settings.dic*2
-    var resBuffer=new ArrayBuffer[(Int,Array[Byte])]
     val trapdoorCast=trapdoor.get().asInstanceOf[ModularMatrix]
     val trapdoorInt=(0 until trapdoorCast.getColnum).map(u=>trapdoorCast.get(0,u).longValue().toInt).toArray
     val ChunkSize=num/settings.chunkNum
+    val Remainder=num%settings.chunkNum
+    val lastChunkSize=Remainder+ChunkSize
+
+
 
     val trapdoorParts=(0 until settings.chunkNum).map(u=>{
-      trapdoorInt.slice(u*ChunkSize,(u+1)*ChunkSize)
+      if(u==(settings.chunkNum-1))
+        trapdoorInt.slice(u*ChunkSize,(u)*ChunkSize+lastChunkSize)
+      else
+        trapdoorInt.slice(u*ChunkSize,(u+1)*ChunkSize)
     })
 
-    val trapdoorEncodedParts=trapdoorParts.map(u=>{
-      fheInstance.EncodeTrapdoor(ChunkSize,u)
-    })
+
+    var resBuffer=new ArrayBuffer[(Int,Array[Byte])]
 
     for(i<-0 until bytesIndex.length){
       val res=(0 until settings.chunkNum).map(u=>{
-        fheInstance.CalcSimPlain(ChunkSize, bytesIndex(i)(u), trapdoorEncodedParts(u))
-      }).reduce((a,b)=>fheInstance.Add(a,b))
-      resBuffer+=((i,res))
+        fheInstance.CalcSimPlain(bytesIndex(i)(u), trapdoorParts(u))
+      })
+      resBuffer+=((i,fheInstance.BatchAdd(res.toArray)))
     }
     new MRSE_FHE_SkNN_Result(resBuffer.toArray)
   }
-
-
-  val trapdoorMap=new util.HashMap[Int,IndexedSeq[Array[Byte]]]
-  /*
-  TODO:create a logic to systematically delete trapdoors from the map
-   */
-  override def SimilaritySearch(trapdoor: Trapdoor, index_part: Int,searchID:Int): Result = {
-    val num=settings.dic*2
-    val ChunkSize=num/settings.chunkNum
-
-    /*
-    encode if new query exists,
-     */
-    val trapdoorEncodedParts = if(trapdoorMap.containsKey(searchID)==false) {
-      val trapdoorCast=trapdoor.get().asInstanceOf[ModularMatrix]
-      val trapdoorInt=(0 until trapdoorCast.getColnum).map(u=>trapdoorCast.get(0,u).longValue().toInt).toArray
-      val trapdoorParts = (0 until settings.chunkNum).map(u => {
-        trapdoorInt.slice(u * ChunkSize, (u + 1) * ChunkSize)
-      })
-      val temp=trapdoorParts.map(u => {
-        fheInstance.EncodeTrapdoor(ChunkSize, u)
-      })
-      trapdoorMap.put(searchID,temp)
-      temp
-    }else trapdoorMap.get(searchID)
-
-    val t0=System.nanoTime()
-      val res=(0 until settings.chunkNum).map(u=>{
-        fheInstance.CalcSimPlain(ChunkSize, bytesIndex(index_part)(u), trapdoorEncodedParts(u))
-      }).reduce((a,b)=>fheInstance.Add(a,b))
-    val t1=System.nanoTime()
-    println("real calc: "+(t1-t0)/1000000)
-    new MRSE_FHE_SkNN_Result(Array((index_part,res)))
- }
 
   override def StartServer(): Unit = {
     val indexData=IndexFiles()

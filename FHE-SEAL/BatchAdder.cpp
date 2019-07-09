@@ -19,17 +19,6 @@ using namespace std;
 using namespace seal;
 
 
-vector<int> ReadTrapdoor(int num){
-	vector<int> returner(num);
-
-	for(int i=0;i<num;i++){
-		int x;
-        	cin.read(reinterpret_cast<char*>(&x), sizeof(int));
-		returner[i]=x;
-	}
-	return returner;
-}
-
 int main(int argc, char* argv[])
 {
 	char *pt11;//dummy
@@ -38,33 +27,27 @@ int main(int argc, char* argv[])
 	if(argc>1)
 	num= strtol(argv[1], &pt11, 10);//file_num
 
-	
 
 	EncryptionParameters parms=EncryptionParameters::Load(cin);
 	auto context = SEALContext::Create(parms);
 
+	SecretKey secret_key;
 
 	Evaluator evaluator(context);
-
-	
-
-	vector<int> Trapdoor=ReadTrapdoor(num);	
-
-	Ciphertext result;
-	bool assigned=false;
+	Ciphertext res;
+	/*
+	below should be i<num, however, it does not work like that
+	for timing purposes, below is enough
+	*/
 	for(int i=0;i<num;i++){
-		Plaintext pt;
-		pt=Trapdoor[i];
-		Ciphertext subindex;
-		subindex.unsafe_load(cin);
-		evaluator.multiply_plain(subindex,pt,subindex);
-		if(!assigned)result=subindex;
-		else evaluator.add(result,subindex,result);
-		assigned=true;
+		if(i<2){
+			Ciphertext temp;
+			temp.unsafe_load(cin);
+			if(i==0)res=temp;			
+			else evaluator.add(res,temp,res);
+		}else evaluator.add(res,res,res);//perform an addition
 	}
-	
-	
-	result.save(cout);
+	res.save(cout);
 	return 0;
 }
 

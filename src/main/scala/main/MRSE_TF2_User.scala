@@ -66,7 +66,6 @@ class MRSE_TF2_User(settings: Settings) extends MRSEuser(settings) {
 
 
   override def GenerateTrapdoor(query:RealVector): Trapdoor = {
-
     return new MRSE_TF2_Trapdoor(sknnInstance.EncryptQuery(query.mapDivide(query.getNorm)))
   }
 

@@ -48,19 +48,28 @@ class MRSE_FHE_SkNN_User(settings: Settings) extends MRSEuser(settings) {
     val encData=data.map(u=>sknnInstance.EncryptData(u))
 
     val vertChunkSize=sknnInstance.dim/settings.chunkNum
+
+    val Remainder=sknnInstance.dim%settings.chunkNum
+    val lastChunkSize=Remainder+vertChunkSize
+
     val dataParts=encData.map(u=>{
-      (0 until settings.chunkNum).map(v=>Util.SubVector(u,v*vertChunkSize,(v+1)*vertChunkSize))
+      (0 until settings.chunkNum).map(v=>{
+        if(v==(settings.chunkNum-1))
+          Util.SubVector(u,v*vertChunkSize,(v)*vertChunkSize+lastChunkSize)
+        else
+          Util.SubVector(u,v*vertChunkSize,(v+1)*vertChunkSize)
+      })
     })
 
+    val indexParts = if (settings.docnum % settings.SlotCount == 0) settings.docnum / settings.SlotCount else settings.docnum / settings.SlotCount + 1
     for(j<-0 until settings.chunkNum) {
-      val indexParts = if (settings.docnum % settings.SlotCount == 0) settings.docnum / settings.SlotCount else settings.docnum / settings.SlotCount + 1
       for (i <- 0 until indexParts)
         fheInstance.IndexGen(dataParts.slice(i * settings.SlotCount, (i + 1) * settings.SlotCount).map(u=>u(j)), i,j)
     }
   }
 
   override def TrapGenKeySize(): Int = {
-    ((sknnInstance.lambda*sknnInstance.lambda*4))/1024
+    ((sknnInstance.lambda*sknnInstance.lambda*4))/1024//size of M
   }
 
   override def ResDecKeySize():Int={
@@ -108,7 +117,7 @@ class MRSE_FHE_SkNN_User(settings: Settings) extends MRSEuser(settings) {
 
 
   override def DecodeResult(s: Array[Byte]): Result = {
-    var buffer=java.nio.ByteBuffer.wrap(s)
+    val buffer=java.nio.ByteBuffer.wrap(s)
     val numRes=buffer.getInt()
     val data=(0 until numRes).map(u=>{
       val ID=buffer.getInt()

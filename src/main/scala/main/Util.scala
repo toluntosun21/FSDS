@@ -209,7 +209,7 @@ object Util {
   }
 
   def PrintSparse(vec:RealVector):Unit={
-    for(i<-0 until vec.getDimension)if(true || vec.getEntry(i)>0.01 || vec.getEntry(i)<(-0.01) )print(i+":"+vec.getEntry(i)+",")
+    for(i<-0 until vec.getDimension)if(vec.getEntry(i)>0.01 || vec.getEntry(i)<(-0.01) )print(i+":"+vec.getEntry(i)+",")
     println
   }
 
@@ -229,23 +229,11 @@ object Util {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
   def Tester(mrse:MRSEserver, mrse_user:MRSEuser,settings: Settings, testcount1:Int, testcount2:Int)={
 
-    var indexGenTime:Long=0
-    var keygenTime:Long=0
+    val indexGenTime=new Array[Long](testcount1)
+    val keygenTime=new Array[Long](testcount1)
+
     var indexSize:Long=0
     var TrapGenKeySize:Long=0
     var ResDecKeySize:Long=0
@@ -259,7 +247,7 @@ object Util {
       t0 = System.nanoTime()
       mrse_user.KeyGen()
       t1 = System.nanoTime()
-      keygenTime+=(t1 - t0)/1000000
+      keygenTime(i)=(t1 - t0)/1000000
       mrse_user.LoadClientKeys()
       TrapGenKeySize+=mrse_user.TrapGenKeySize()
       ResDecKeySize+=mrse_user.ResDecKeySize()
@@ -267,14 +255,12 @@ object Util {
       t0 = System.nanoTime()
       mrse_user.BuildIndex()
       t1 = System.nanoTime()
-      indexGenTime+=(t1 - t0)/1000000
+      indexGenTime(i)=(t1 - t0)/1000000
       indexSize+=mrse.IndexSize()
     }
     mrse.StartServer()
     if(testcount1>0) {
       indexSize /= testcount1
-      indexGenTime /= testcount1
-      keygenTime /= testcount1
       TrapGenKeySize /= testcount1
       ResDecKeySize /=testcount1
     }else{
@@ -282,15 +268,13 @@ object Util {
     }
     var suc:Long=0
 
-    var trapdoorTime:Long=0
-    var similaritySearchTime:Long=0
+    val trapdoorTime=new Array[Long](testcount2)
+    val similaritySearchTime=new Array[Long](testcount2)
 
-    var simresDecTime:Long=0
-    var PIRtime:Long=0
+    val simresDecTime=new Array[Long](testcount2)
 
     var trapdoorSize:Long=0
     var simresSize:Long=0
-    var respTime:Long=0
 
     val plainData=Util.readData(new File(settings.PlainData()),settings.docnum,settings.dic)
     val querySet=Util.readData(new File(settings.PlainQuerySet()),settings.dic)
@@ -305,45 +289,29 @@ object Util {
 
       val index=new Random().nextInt(numQuery)
       val query=querySet(index)
-
-
-
-
       val plainRes=(0 until settings.docnum).map(u=>(u,plainData(u).cosine(query))).
         sortBy(u=>u._2*(-1)).
         take(settings.K).toArray
 
-      val r0=System.nanoTime()
-
       t0 = System.nanoTime()
       val trapdoor=mrse_user.GenerateTrapdoor(query)
       t1 = System.nanoTime()
-      trapdoorTime+=(t1 - t0)/1000000
+      trapdoorTime(i)=(t1 - t0)/1000000
       trapdoorSize+=trapdoor.Size()
-      val trapHash=trapdoor.hashCode()//search ID
 
-      var clientThreads=new Array[Thread](mrse_user.indexParts())
-      for(j<-0 until mrse_user.indexParts()) {
-        t0 = System.nanoTime()
-        val res = mrse.SimilaritySearch(trapdoor,j,trapHash)
-        t1 = System.nanoTime()
-        similaritySearchTime += (t1 - t0) / 1000000
-        simresSize += res.Size()
-        clientThreads(j)=new Thread(){
-          override def run(): Unit = {
-            t0 = System.nanoTime()
-            mrse_user.Decrypt(res,trapHash)
-            t1 = System.nanoTime()
-            simresDecTime += (t1 - t0) / 1000000
-          }
-        }
-        clientThreads(j).start()
-      }
-      clientThreads.foreach(u=>u.join())
-      val r1=System.nanoTime()
-      respTime += (r1 - r0) / 1000000
-      val dec_res =mrse_user.resultMap.get(trapHash)
+      t0 = System.nanoTime()
+      val res=mrse.SimilaritySearch(trapdoor)
+      t1 = System.nanoTime()
+      similaritySearchTime(i)=(t1 - t0)/1000000
+      simresSize+=res.Size()
+
+      t0 = System.nanoTime()
+      val dec_res=mrse_user.Decrypt(res)
+      t1 = System.nanoTime()
+      simresDecTime(i)=(t1 - t0)/1000000
+
       //      val res2=mrse_user.PIR(dec_res.map(u=>u._1))
+
       var localSucc=0
       plainRes.foreach(u=>{
         if(dec_res.filter(v=>v._1==u._1).length>0) {
@@ -352,22 +320,18 @@ object Util {
         }
       })
       totalPassingThreshold+=dec_res.filter(u=>u._2>settings.threshold).length
-      if(localSucc==0) {
+/*      if(localSucc==0) {
         println("ERROR:::::::::::::::::::::::::::::::::")
         plainRes.foreach(u => println(u._1 + " " + u._2))
         println()
         dec_res.foreach(u => println(u._1 + " " + u._2))
-      }
+      }*/
     }
 
-    trapdoorTime/=testcount2
-    similaritySearchTime/=testcount2
-    simresDecTime/=testcount2
 
     trapdoorSize/=testcount2
     simresSize/=testcount2
     totalPassingThreshold/=testcount2
-    respTime/=testcount2
 
     println("Method: "+mrse.MethodName())
     println("docnum: "+settings.docnum)
@@ -378,25 +342,23 @@ object Util {
     println("slot count: "+settings.SlotCount)
     println("plain mod: "+settings.plainMod)
     println("Success: "+suc.toDouble/testcount2/settings.K)
-    println("KEYGEN(MS): "+keygenTime)
+    println("KEYGEN(MS): "+Util.DiscardDeviatedResultAndComputeMean(keygenTime))
     println("TRAPDOOR GEN KEY SIZE(KB): "+TrapGenKeySize)
     println("RESULT DECRYPTION KEY SIZE(KB): "+ResDecKeySize)
-    println("BUILD INDEX(MS): "+indexGenTime)
-    println("BUILD INDEX(MB): "+indexSize)
+    println("BUILD INDEX(MS): "+Util.DiscardDeviatedResultAndComputeMean(indexGenTime))
+    println("INDEX SIZE(MB): "+indexSize)
 
-    println("TRAPDOOR(MS): "+trapdoorTime)
+    println("TRAPDOOR(MS): "+Util.DiscardDeviatedResultAndComputeMean(trapdoorTime))
     println("TRAPDOOR(KB): "+trapdoorSize)
-    println("SIM_SEARCH(MS): "+similaritySearchTime)
+    println("SIM_SEARCH(MS): "+Util.DiscardDeviatedResultAndComputeMean(similaritySearchTime))
     println("SIM_RESULT(KB): "+simresSize)
-    println("SIM_RESULT_DEC(MS): "+simresDecTime)
+    println("SIM_RESULT_DEC(MS): "+Util.DiscardDeviatedResultAndComputeMean(simresDecTime))
     println("MEAN PIRs: "+totalPassingThreshold)
     println()
-    println("RESPONSE TIME(MS): "+respTime)
     println("BANDWIDTH USAGE(KB): "+(trapdoorSize+simresSize))
     println("PLAIN INDEX SIZE(KB): "+(plainData.map(u=>u.toArray.filter(u=>u>0.001).length*12).reduce((a,b)=>a+b+1)/1024))
     println()
     println()
-
 
   }
 
@@ -425,7 +387,28 @@ object Util {
     Insert(list,arr,k)
   }
 
+  def CollectInput(stream:InputStream,length:Int): Array[Byte] ={
+    var buffer:Array[Byte]=null
+    var readLength=0
 
+    var bytsBuffer=new ArrayBuffer[Byte]()
+    while ( readLength!=(-1) && bytsBuffer.size<length)
+    {
+      buffer=Array.fill(length-bytsBuffer.size){Byte.MinValue}
+      readLength=stream.read(buffer)
+      bytsBuffer++=buffer.take(readLength)
+
+    }
+
+    bytsBuffer.toArray
+  }
+
+  def CollectInput(stream:InputStream): Array[Byte] ={
+    val sizeEncoded=CollectInput(stream,4)
+    var buffer=java.nio.ByteBuffer.wrap(sizeEncoded)
+    val sizeData=buffer.getInt()
+    CollectInput(stream,sizeData)
+  }
 
   def CollectAllInput(stream:InputStream): Array[Byte] ={
     val buffer=Array.fill(10000){Byte.MinValue}
@@ -433,8 +416,10 @@ object Util {
     var bytsBuffer=new ArrayBuffer[Byte]()
     while ( length!= -1)
     {
+//      println("l: "+length)
       bytsBuffer++=buffer.take(length)
       length=stream.read(buffer)
+
     }
 
     bytsBuffer.toArray
@@ -446,6 +431,36 @@ object Util {
     for(i<-0 until end-start)
       returner.set(0,i,vec.get(0,start+i))
     returner
+  }
+
+  def ToIntBytes(i:Int):Array[Byte]={
+    val buffer=java.nio.ByteBuffer.allocate(4)
+    buffer.putInt(i)
+    var init=buffer.array()
+    val returner=new Array[Byte](4)
+    returner(0)=init(3)
+    returner(1)=init(2)
+    returner(2)=init(1)
+    returner(3)=init(0)
+    returner
+
+  }
+
+
+  def DiscardDeviatedResultAndComputeMean(data:Array[Long],margin:Double=0.1):Long={
+    if(data.length==0)return 0
+    else if(data.length==1)return data(0)
+    val meanInit=data.sum/data.length.toDouble
+    val upperBound=meanInit+meanInit*margin
+    val lowerBound=meanInit-meanInit*margin
+
+    val filtered=data.filter(u=>{
+      u>=lowerBound && u<=upperBound
+    })
+
+    if(filtered.length.toDouble>=data.length.toDouble*0.8)
+      return (filtered.sum/filtered.length.toDouble).toLong
+    else return DiscardDeviatedResultAndComputeMean(data,margin+0.1)
   }
 
 }

@@ -1,6 +1,6 @@
 package main
 
-import java.io.File
+import java.io.{File, InputStream}
 
 
 
@@ -49,4 +49,8 @@ returns SEAL cipher texts as array
 
   def DecodeTrapdoor(s:Array[Byte]):Trapdoor
 
+  def LoadTrapdoor(str:InputStream):Trapdoor={
+    val temp=Util.CollectInput(str)
+    DecodeTrapdoor(temp)
+  }
 }

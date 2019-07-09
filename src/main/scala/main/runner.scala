@@ -26,21 +26,19 @@ object runner {
       val client=new MRSE_FHE_User(settings)
       Util.Tester(server,client,settings,t1,t2)
     }else if(method==2){
-      settings.threshold=args(5).toDouble
-      settings.SlotCount=args(6).toInt
-      settings.Security=args(7).toInt	
-      settings.plainMod=args(8).toInt
-      settings.chunkNum=args(9).toInt
+      settings.SlotCount=args(5).toInt
+      settings.Security=args(6).toInt
+      settings.plainMod=args(7).toInt
+      settings.chunkNum=args(8).toInt
       val server=new MRSE_FHE_SkNN_Server(settings)
       val client=new MRSE_FHE_SkNN_User(settings)
       Util.Tester(server,client,settings,t1,t2)
     }
     else if(method==3){
-      settings.threshold=args(5).toDouble
-      settings.SlotCount=args(6).toInt
-      settings.Security=args(7).toInt
-      settings.plainMod=args(8).toInt
-      settings.chunkNum=args(9).toInt
+      settings.SlotCount=args(5).toInt
+      settings.Security=args(6).toInt
+      settings.plainMod=args(7).toInt
+      settings.chunkNum=args(8).toInt
       val server=new MRSE_FHE_SkNN_P_Server(settings)
       val client=new MRSE_FHE_SkNN_P_User(settings)
       Util.Tester(server,client,settings,t1,t2)
@@ -50,6 +48,42 @@ object runner {
       val server=new MRSE_TF2_P_Server(settings)
       val client=new MRSE_TF2_User(settings)
       Util.Tester(server,client,settings,t1,t2)
+    }else if (method==5){
+      settings.variance=args(5).toDouble
+      settings.chunkNum=args(6).toInt
+      settings.port=args(7).toInt
+      val server=new MRSE_TF2_Server(settings)
+      val socketserver=new MRSE_SocketServer(settings,server)
+      socketserver.start()
+    }else if (method==6){
+      settings.SlotCount=args(5).toInt
+      settings.Security=args(6).toInt
+      settings.plainMod=args(7).toInt
+      settings.chunkNum=args(8).toInt
+      settings.port=args(9).toInt
+      val server=new MRSE_FHE_SkNN_P_Server(settings)
+      val socketserver=new MRSE_SocketServer(settings,server)
+      socketserver.start()
+    }else if (method==7){
+      settings.SlotCount=args(5).toInt
+      settings.Security=args(6).toInt
+      settings.plainMod=args(7).toInt
+      settings.chunkNum=args(8).toInt
+      settings.port=args(9).toInt
+      val client=new MRSE_FHE_SkNN_P_User(settings)
+      client.LoadClientKeys()
+      println("--KEYS LOADED")
+      val sc=new MRSE_SocketClient(settings,client)
+      sc.Search(t1)
+    }
+    else if (method==8){
+      settings.variance=args(5).toDouble
+      settings.port=args(7).toInt
+      val client=new MRSE_TF2_User(settings)
+      client.LoadClientKeys()
+      println("--KEYS LOADED")
+      val sc=new MRSE_SocketClient(settings,client)
+      sc.Search(t1)
     }
   }
 }
