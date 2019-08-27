@@ -1,6 +1,6 @@
 # FSDS
 
-The project depends on SEAL 3.2 and Apache Commons Math 3.2. Commons Math Package is included by SBT(Scala Build Tool) as SEAL is a c++ dependency which is used to compile c++ sources that contain homomorphic operations(SWHE).
+The project depends on SEAL 3.2 and Apache Commons Math 3.2. Apache Commons Math Package is included by SBT(Scala Build Tool) as SEAL is a c++ dependency which is used to compile c++ sources that contain homomorphic operations(SWHE).
 
 For secret/public keys, a folder named "key" should be created. The program automatically generates and stores the keys under the folder and read from the same spot. 
 
