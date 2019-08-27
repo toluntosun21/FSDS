@@ -13,45 +13,45 @@ tf-idf data and secure indexes must be stored under a folder named "/data". More
 An example of the directory which the target jar of the project is executed is:
   
   
-  -FSDS.jar
+├── FSDS.jar
  
- /exe:
+├── exe/
+
+│   ├──SWHEDecryptor
    
-   -SWHEDecryptor
+│   ├──SWHEKeyGen
    
-   -SWHEKeyGen
+│   ├──SWHEBatchAdder (used in parallel versions)
    
-   -SWHEBatchAdder (used in parallel versions)
+│   ├──SWHEAdder (used in parallel versions)
    
-   -SWHEAdder (used in parallel versions)
+│   ├──SWHEIndexGen
    
-   -SWHEIndexGen
+│   ├──SWHEQueryGen
    
-   -SWHEQueryGen
+│   ├──SWHEMaskGen (used in FSDS0)
    
-   -SWHEMaskGen (used in FSDS0)
+│   ├──SWHECalcSim (used in FSDS0)
    
-   -SWHECalcSim (used in FSDS0)
+│   ├──SWHECalcSimPlain (used in FSDS)
+
+├── key/
+
+│   ├──FSDS_enron_8192_2010_pubkey
    
-   -SWHECalcSimPlain (used in FSDS)
-  
-  /key:
+│   ├──FSDS_enron_8192_2010_privatekey
    
-   -FSDS_enron_8192_2010_pubkey
+│   ├──FSDS_enron_8192_2010_param
    
-   -FSDS_enron_8192_2010_privatekey
+│   ├──FSDS_enron_8192_2010_M
    
-   -FSDS_enron_8192_2010_param
+│   ├──FSDS_enron_8192_2010_Minv
+
+├── data/
+
+│   ├──tf_idf_data_enron_8192
    
-   -FSDS_enron_8192_2010_M
+│   ├──query_tf_idf_data_enron_8192
    
-   -FSDS_enron_8192_2010_Minv
-  
-  /data:
-   
-   -tf_idf_data_enron_8192
-   
-   -query_tf_idf_data_enron_8192
-   
-   -FSDS_enron_8192_2010_1_INDEX_0_0_
+│   ├──FSDS_enron_8192_2010_1_INDEX_0_0_
 
