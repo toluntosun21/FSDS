@@ -11,7 +11,7 @@ class MRSE_FHE_User(settings: Settings) extends MRSEuser(settings) {
 
 
 
-  override def MethodName(): String = "MRSE_FHE"
+  override def MethodName(): String = "FSDS0"
 
   override def QueryGenKeySize(): Int = (instance.pubKey.length)/1024
   override def ResDecKeySize(): Int = (instance.privateKey.length)/1024

@@ -7,7 +7,7 @@ class FSDS_0_Server(settings: Settings) extends SDS_Server(settings) {
   var instance=new SWHE(settings)
   instance.method=MethodName()
 
-  override def MethodName(): String = "MRSE_FHE"
+  override def MethodName(): String = "FSDS0"
 
   var masks:Array[Byte]=null
   var bytesIndex:Array[Byte]=null

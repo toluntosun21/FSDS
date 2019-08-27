@@ -24,7 +24,7 @@ class MRSE_FHE_SkNN_User(settings: Settings) extends MRSEuser(settings) {
     else settings.docnum / settings.SlotCount + 1
 
 
-  override def MethodName(): String = "MRSE_FHE_SkNN"
+  override def MethodName(): String = "FSDS"
 
   override def KeyGen(): Unit = {
     fheInstance.KeyGen(0)

@@ -87,7 +87,7 @@ object Tests {
 
 
   def TF2CloudTimingAndAccuracyTest(settings: Settings, testcount1:Int,testcount2:Int,mode:Int=0): Unit ={
-    val similaritySearchTime=new Array[Long](testcount1)
+    val similaritySearchTime=new Array[Long](testcount1*testcount2)
 
     val plainData=Util.Functions.readData(new File(settings.PlainData()),settings.docnum,settings.dic)
     val querySet=Util.Functions.readData(new File(settings.PlainQuerySet()),settings.dic)
@@ -120,7 +120,7 @@ object Tests {
         val cipherResInit = (0 until settings.docnum).map(u => (u, dataExtended(u).dotProduct(query)))
         val ranked = Util.Functions.Insert(cipherResInit.toArray, settings.K)
         val t1 = System.nanoTime()
-        similaritySearchTime(i) = ((t1 - t0) / 1000000)
+        similaritySearchTime(j*testcount2+i) = ((t1 - t0) / 1000000)
 
         totalSuccReal += plainRes.map(u => u._2).sum
         algSuccTotal += ranked.map(u => plainResInit(u._1)._2).sum

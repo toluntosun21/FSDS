@@ -44,15 +44,15 @@ class Settings extends Serializable {
   def M2inv():String="M2inv"
 
 
-  def SWHEDecryptor=exedir+"/FHEDecryptor"
-  def SWHEKeygen=exedir+"/FHEKeyGen"
-  def SWHEBatchAdder=exedir+"/FHEBatchAdder"
-  def SWHEAdder=exedir+"/FHEAdder"
-  def SWHEIndexgen=exedir+"/FHEIndexGen"
-  def SWHEQueryGen=exedir+"/FHEQueryGen"
-  def SWHEMaskgen=exedir+"/FHEMaskGen"
-  def SWHECalcSim=exedir+"/FHECalcSim"
-  def SWHECalcSimPlain=exedir+"/FHECalcSimPlain"
+  def SWHEDecryptor=exedir+"/SWHEDecryptor"
+  def SWHEKeygen=exedir+"/SWHEKeyGen"
+  def SWHEBatchAdder=exedir+"/SWHEBatchAdder"
+  def SWHEAdder=exedir+"/SWHEAdder"
+  def SWHEIndexgen=exedir+"/SWHEIndexGen"
+  def SWHEQueryGen=exedir+"/SWHEQueryGen"
+  def SWHEMaskgen=exedir+"/SWHEMaskGen"
+  def SWHECalcSim=exedir+"/SWHECalcSim"
+  def SWHECalcSimPlain=exedir+"/SWHECalcSimPlain"
 
 
 

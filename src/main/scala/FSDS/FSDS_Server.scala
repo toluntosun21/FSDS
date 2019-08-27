@@ -13,7 +13,7 @@ import scala.collection.mutable.ArrayBuffer
 class FSDS_Server(settings: Settings) extends SDS_Server(settings) {
 
   var fheInstance=new SWHE(settings)
-  override def MethodName(): String = "MRSE_FHE_SkNN"
+  override def MethodName(): String = "FSDS"
   var bytesIndex:Array[Array[Array[Byte]]]=null
 
   override def indexParts(): Int =
