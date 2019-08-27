@@ -1,4 +1,4 @@
-# MRSE_FHE_SkNN
+# FSDS
 
 For secret/public keys, a folder named "key" should be created. The program automatically generates and stores the keys under the folder and read from the same spot. 
 
