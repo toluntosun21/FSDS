@@ -10,7 +10,7 @@ tf-idf data and secure indexes must be stored under a folder named "/data". More
 
 
 
-An example of the directory which the target jar of the project is executed is:
+An example of the directory where the target jar of the project is executed in:
   
   
 ├── FSDS.jar
